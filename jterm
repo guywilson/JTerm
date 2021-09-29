@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# Modify the cp (classpath) variable to match the paths on your system...
+cp=target/jterm-1.0.jar:lib/jSerialComm-2.7.0.jar:/Users/guy/Library/Java/lib/jline-3.19.1-SNAPSHOT.jar
+
+mainclass=com.guy.jterm.Main
+
+java -classpath $cp $mainclass
