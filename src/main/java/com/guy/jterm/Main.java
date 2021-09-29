@@ -74,18 +74,17 @@ public final class Main {
         SerialPort port = ports[portNumber];
 
         port.openPort();
-        port.setComPortTimeouts(SerialPort.TIMEOUT_READ_SEMI_BLOCKING, 1000, 0);
+        port.setComPortTimeouts(SerialPort.TIMEOUT_READ_BLOCKING, 0, 0);
         port.setBaudRate(115200);
 
-        InputStream is = null;
         OutputStream os = null;
 
         try {
-            is = port.getInputStream();
             os = port.getOutputStream();
+
+            PortListener listener = new PortListener(port);
+            listener.start();
     
-            byte[] buffer = new byte[512];
-        
             while (true) {
                 String data = reader.readLine("[" + port.getSystemPortName() + "]> ") + "\r\n";
     
@@ -96,30 +95,8 @@ public final class Main {
                     System.out.println("Failed to write to serial output stream: " + ioe.getMessage());
                     throw new Exception("Failed to write to serial output stream: " + ioe.getMessage());
                 }
-        
-                try {
-                    int i = 0;
-        
-                    while (true) {
-                        int ch = is.read();
-        
-                        if (ch == '\n') {
-                            System.out.println(new String(buffer));
-                        }
-                        else if (ch == -1) {
-                            buffer[i] = 0;
-                            break;
-                        }
-        
-                        buffer[i] = (byte)ch;
-        
-                        i++;
-                    }
-                }
-                catch (Exception e) {
-                    System.out.println("Error reading from port [" + port.getSystemPortName() + "]: " + e.getMessage());
-                    throw e;
-                }
+
+                Thread.sleep(1000);
             }
         }
         catch (Exception e) {
