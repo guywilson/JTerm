@@ -5,8 +5,9 @@ import com.fazecast.jSerialComm.SerialPort;
 
 public class PortListener extends Thread
 {
-    private SerialPort p;
-    private Semaphore s;
+    private SerialPort  p;
+    private Semaphore   s;
+    private boolean     run = false;
 
     private final static int STATE_INIT =               0;
     private final static int STATE_ACQUIRE =            1;
@@ -20,10 +21,16 @@ public class PortListener extends Thread
         this.p = port;
 
         this.s = new Semaphore(1, true);
+
+        run = true;
     }
 
     public Semaphore getSemaphore() {
         return s;
+    }
+
+    public void stopListener() {
+        run = false;
     }
 
     public void run() {
@@ -35,7 +42,7 @@ public class PortListener extends Thread
             int state = STATE_INIT;
             int zeroBytesReadCount = 0;
 
-            while (true) {
+            while (run) {
                 switch (state) {
                     case STATE_INIT:
                         Thread.sleep(500);

@@ -23,7 +23,8 @@ public final class Main {
      * Says hello to the world.
      * @param args The arguments of the program.
      */
-    public static void main(String[] args) {
+    public static void main(String[] args)
+    {
         SerialPort[] ports = SerialPort.getCommPorts();
 
         System.out.println("Available ports:");
@@ -81,7 +82,7 @@ public final class Main {
             PortListener listener = new PortListener(port);
 
             listener.start();
-    
+        
             while (true) {
                 listener.getSemaphore().acquire();
 
@@ -95,10 +96,8 @@ public final class Main {
         }
         catch (Exception e) {
             System.out.println("\nError, exiting" + e.getMessage());
+            e.printStackTrace();
             return;
-        }
-        finally {
-            port.closePort();
         }
     }
 }
