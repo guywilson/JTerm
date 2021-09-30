@@ -14,6 +14,8 @@ public class PortListener extends Thread
     private final static int STATE_PRINTLINE =          3;
     private final static int STATE_RELEASE =            4;
 
+    private final static int ZERO_BYTE_RETRY_COUNT =    5;
+
     public PortListener(SerialPort port) {
         this.p = port;
 
@@ -30,7 +32,7 @@ public class PortListener extends Thread
             byte[] bytesToRead = new byte[2];
 
             int i = 0;
-            int state = 0;
+            int state = STATE_INIT;
             int zeroBytesReadCount = 0;
 
             while (true) {
@@ -42,6 +44,7 @@ public class PortListener extends Thread
 
                     case STATE_ACQUIRE:
                         getSemaphore().acquire();
+                        Thread.sleep(75);
                         state = STATE_READ;
                         break;
 
@@ -64,9 +67,9 @@ public class PortListener extends Thread
                         }
                         else if (bytesRead == 0) {
                             zeroBytesReadCount++;
-                            Thread.sleep(50);
+                            Thread.sleep(100);
 
-                            if (zeroBytesReadCount == 5) {
+                            if (zeroBytesReadCount == ZERO_BYTE_RETRY_COUNT) {
                                 state = STATE_RELEASE;
                                 zeroBytesReadCount = 0;
                             }
