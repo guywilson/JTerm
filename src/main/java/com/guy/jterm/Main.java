@@ -25,22 +25,75 @@ public final class Main {
      */
     public static void main(String[] args)
     {
-        SerialPort[] ports = SerialPort.getCommPorts();
+        String      deviceName = null;
+        int         baudRate = 9600;
+        int         dataBits = 8;
+        int         stopBits = SerialPort.ONE_STOP_BIT;
+        int         parity = SerialPort.NO_PARITY;
+        String      lineEndChars = "\n";
 
-        System.out.println("Available ports:");
+		if (args.length > 0) {
+			for (int i = 0;i < args.length;i++) {
+                if (args[i].startsWith("-dev")) {
+                    deviceName = args[i+1];
 
-        for (int i = 0; i < ports.length; i++) {
-            System.out.println(
-                            "\t" + 
-                            i + 
-                            ".\t" + 
-                            ports[i].getDescriptivePortName() + 
-                            ": (" + 
-                            ports[i].getSystemPortName() + 
-                            ")");
-        }
+                    i++;
+                }
+                else if (args[i].startsWith("-baud")) {
+                    baudRate = Integer.parseInt(args[i+1]);
+                    i++;
+                }
+                else if (args[i].startsWith("-parms")) {
+                    String parameters = args[i+1].toUpperCase();
+                    
+                    dataBits = parameters.charAt(0);
 
-        System.out.println();
+                    switch (parameters.charAt(1)) {
+                        case 'N':
+                            parity = SerialPort.NO_PARITY;
+                            break;
+
+                        case 'O':
+                            parity = SerialPort.ODD_PARITY;
+                            break;
+
+                        case 'E':
+                            parity = SerialPort.EVEN_PARITY;
+                            break;
+
+                        default:
+                            System.out.println("Invalid parity character");
+                            System.exit(-1);
+                    }
+
+                    if (parameters.substring(2).equals("1")) {
+                        stopBits = SerialPort.ONE_STOP_BIT;
+                    }
+                    else if (parameters.substring(2).equals("1.5")) {
+                        stopBits = SerialPort.ONE_POINT_FIVE_STOP_BITS;
+                    }
+                    else if (parameters.substring(2).equals("2")) {
+                        stopBits = SerialPort.TWO_STOP_BITS;
+                    }
+                    else {
+                        System.out.println("Invalid stop bits");
+                        System.exit(-1);
+                    }
+
+                    i++;
+                }
+                else if (args[i].startsWith("-line-end")) {
+                    String line_end = args[i+1];
+
+                    if (line_end.equalsIgnoreCase("LF")) {
+                        lineEndChars = "\n";
+                    }
+                    else if (line_end.equalsIgnoreCase("CRLF")) {
+                        lineEndChars = "\r\n";
+                    }
+                }
+			}
+		}
 
         Terminal		terminal;
 		LineReader		reader;
@@ -63,20 +116,44 @@ public final class Main {
 			return;
 		}
 
-        String portId = reader.readLine("Enter the port number to connect to [0 - " + (ports.length - 1) + "]: ");
+        SerialPort port = null;
 
-        int portNumber = Integer.parseInt(portId);
+        if (deviceName == null) {
+            SerialPort[] ports = SerialPort.getCommPorts();
 
-        if (portNumber < 0 || portNumber >= ports.length) {
-            System.out.println("Invalid port number specified");
-            return;
+            System.out.println("Available ports:");
+    
+            for (int i = 0; i < ports.length; i++) {
+                System.out.println(
+                                "\t" + 
+                                i + 
+                                ".\t" + 
+                                ports[i].getDescriptivePortName() + 
+                                ": (" + 
+                                ports[i].getSystemPortName() + 
+                                ")");
+            }
+    
+            System.out.println();
+    
+            String portId = reader.readLine("Enter the port number to connect to [0 - " + (ports.length - 1) + "]: ");
+    
+            int portNumber = Integer.parseInt(portId);
+    
+            if (portNumber < 0 || portNumber >= ports.length) {
+                System.out.println("Invalid port number specified");
+                return;
+            }
+    
+            port = ports[portNumber];
         }
-
-        SerialPort port = ports[portNumber];
+        else {
+            port = SerialPort.getCommPort(deviceName);
+        }
 
         port.openPort();
         port.setComPortTimeouts(SerialPort.TIMEOUT_NONBLOCKING, 0, 0);
-        port.setBaudRate(115200);
+        port.setComPortParameters(baudRate, dataBits, stopBits, parity);
 
         try {
             PortListener listener = new PortListener(port);
@@ -86,7 +163,7 @@ public final class Main {
             while (true) {
                 listener.getSemaphore().acquire();
 
-                String data = reader.readLine("[" + port.getSystemPortName() + "]> ") + "\r\n";
+                String data = reader.readLine("[" + port.getSystemPortName() + "]> ") + lineEndChars;
                 port.writeBytes(data.getBytes(), data.length());
                 
                 listener.getSemaphore().release();
