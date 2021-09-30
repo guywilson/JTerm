@@ -19,10 +19,6 @@ public final class Main {
 
     }
 
-    /**
-     * Says hello to the world.
-     * @param args The arguments of the program.
-     */
     public static void main(String[] args)
     {
         String      deviceName = null;
@@ -46,7 +42,7 @@ public final class Main {
                 else if (args[i].startsWith("-parms")) {
                     String parameters = args[i+1].toUpperCase();
                     
-                    dataBits = parameters.charAt(0);
+                    dataBits = parameters.charAt(0) - 48;
 
                     switch (parameters.charAt(1)) {
                         case 'N':
@@ -150,6 +146,26 @@ public final class Main {
         else {
             port = SerialPort.getCommPort(deviceName);
         }
+
+        char parityChar = 'N';
+
+        if (parity == SerialPort.EVEN_PARITY) {
+            parityChar = 'E';
+        }
+        else if (parity == SerialPort.ODD_PARITY) {
+            parityChar = 'O';
+        }
+
+        System.out.println(
+                    "Opening serial port: " + 
+                    port.getSystemPortName() + 
+                    " @ " + 
+                    baudRate + 
+                    " with parameters '" + 
+                    dataBits + 
+                    parityChar + 
+                    stopBits +
+                    "'");
 
         port.openPort();
         port.setComPortTimeouts(SerialPort.TIMEOUT_NONBLOCKING, 0, 0);

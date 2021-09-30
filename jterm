@@ -5,4 +5,4 @@ cp=target/jterm-1.0.jar:lib/jSerialComm-2.7.0.jar:/Users/guy/Library/Java/lib/jl
 
 mainclass=com.guy.jterm.Main
 
-java -classpath $cp $mainclass
+java -classpath $cp $mainclass $1 $2 $3 $4 $5 $6 $7 $8
