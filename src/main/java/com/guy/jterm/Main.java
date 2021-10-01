@@ -10,12 +10,19 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.IOException;
 
-/**
- * Unit test for simple App.
- */
 @SuppressWarnings("all")
 public final class Main {
     private Main() {
+    }
+
+    private static void printUsage() {
+        System.out.println("Usage:");
+        System.out.println("\tjterm <options>");
+        System.out.println("\t\t-dev <device-name>");
+        System.out.println("\t\t-baud <baud rate>");
+        System.out.println("\t\t-parms <data bits><parity><stop bits> e.g. 8N1, 8E2 etc");
+        System.out.println("\t\t-line-end <line feed char(s)> either LF or CRLF");
+        System.out.println();
     }
 
     public static void main(String[] args)
@@ -86,6 +93,10 @@ public final class Main {
                     else if (line_end.equalsIgnoreCase("CRLF")) {
                         lineEndChars = "\r\n";
                     }
+                }
+                else {
+                    printUsage();
+                    System.exit(-1);
                 }
 			}
 		}
