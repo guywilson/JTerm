@@ -18,7 +18,7 @@ public final class Main {
     private static void printUsage() {
         System.out.println("Usage:");
         System.out.println("\tjterm <options>");
-        System.out.println("\t\t-dev <device-name>");
+        System.out.println("\t\t-dev <device-name> (optional, you can choose from a list if not specified)");
         System.out.println("\t\t-baud <baud rate>");
         System.out.println("\t\t-parms <data bits><parity><stop bits> e.g. 8N1, 8E2 etc");
         System.out.println("\t\t-line-end <line feed char(s)> either LF or CRLF");
@@ -100,6 +100,10 @@ public final class Main {
                 }
 			}
 		}
+        else {
+            printUsage();
+            System.exit(-1);
+        }
 
         Terminal		terminal;
 		LineReader		reader;
