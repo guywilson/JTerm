@@ -16,7 +16,6 @@ import java.io.IOException;
 @SuppressWarnings("all")
 public final class Main {
     private Main() {
-
     }
 
     public static void main(String[] args)
@@ -106,6 +105,8 @@ public final class Main {
 					.build();
 	        
 			reader.setOpt(LineReader.Option.AUTO_FRESH_LINE);
+
+            CommandHandler handler = new CommandHandler(reader);
 		}
 		catch (Exception e) {
 			System.out.println("Failed to create terminal: " + e.getMessage());
