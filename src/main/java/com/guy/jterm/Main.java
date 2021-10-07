@@ -8,10 +8,13 @@ import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.http.WebSocket.Listener;
 import java.io.IOException;
 
 @SuppressWarnings("all")
 public final class Main {
+    private static String cmd;
+
     private Main() {
     }
 
@@ -94,16 +97,16 @@ public final class Main {
                         lineEndChars = "\r\n";
                     }
                 }
-                else {
-                    printUsage();
-                    System.exit(-1);
-                }
+                // else {
+                //     printUsage();
+                //     System.exit(-1);
+                // }
 			}
 		}
-        else {
-            printUsage();
-            System.exit(-1);
-        }
+        // else {
+        //     printUsage();
+        //     System.exit(-1);
+        // }
 
         Terminal		terminal;
 		LineReader		reader;
@@ -120,13 +123,13 @@ public final class Main {
 					.build();
 	        
 			reader.setOpt(LineReader.Option.AUTO_FRESH_LINE);
-
-            CommandHandler handler = new CommandHandler(reader);
 		}
 		catch (Exception e) {
 			System.out.println("Failed to create terminal: " + e.getMessage());
 			return;
 		}
+
+        CommandHandler handler = new CommandHandler(reader);
 
         SerialPort port = null;
 
@@ -187,20 +190,34 @@ public final class Main {
         port.setComPortTimeouts(SerialPort.TIMEOUT_NONBLOCKING, 0, 0);
         port.setComPortParameters(baudRate, dataBits, stopBits, parity);
 
-        try {
-            PortListener listener = new PortListener(port);
+        boolean isRunning = true;
 
-            listener.start();
-        
-            while (true) {
+        PortListener listener = new PortListener(port);
+
+        listener.start();
+    
+        try {
+            while (isRunning) {
                 listener.getSemaphore().acquire();
 
-                String data = reader.readLine("[" + port.getSystemPortName() + "]> ") + lineEndChars;
-                port.writeBytes(data.getBytes(), data.length());
-                
-                listener.getSemaphore().release();
+                if (!handler.isCommandMode()) {
+                    String data = reader.readLine("[" + port.getSystemPortName() + "]> ") + lineEndChars;
+                    port.writeBytes(data.getBytes(), data.length());
+                    
+                    listener.getSemaphore().release();
+    
+                    Thread.sleep(75);
+                }
+                else {
+                    String command = reader.readLine("jTerm: ");
 
-                Thread.sleep(75);
+                    if (command.equalsIgnoreCase("quit")) {
+                        isRunning = false;
+                    }
+                    else if (command.equalsIgnoreCase("back")) {
+                        handler.setCommandMode(false);
+                    }
+                }
             }
         }
         catch (Exception e) {
@@ -208,5 +225,8 @@ public final class Main {
             e.printStackTrace();
             return;
         }
+
+        listener.stopListener();
+        port.closePort();
     }
 }
